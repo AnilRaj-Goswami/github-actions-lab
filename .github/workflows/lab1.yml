@@ -1,24 +1,38 @@
-name: "GitHub Actions Lab 1"
+name: "GitHub Actions Lab 2"
 
 on:
   push:
-    branches: 
+    branches:
       - main
 
 jobs:
- system-info:
+  explore-runner:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Print Greeting
-        run: echo "Hello from GitHub Actions"
-  
-      - name: Print Operating System
-        run: uname -a
-  
-      - name: Print workspace
+
+      - name: Show workspace
         run: |
-            pwd
-            ls -ltra
+          echo "Current directory:"
+          pwd
+
+          echo ""
+          echo "Repository contents:"
+          ls -la
+
+      - name: Show GitHub environment variables
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch/Ref: $GITHUB_REF"
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Workspace: $GITHUB_WORKSPACE"
+          echo "Workflow: $GITHUB_WORKFLOW"
+          echo "Job: $GITHUB_JOB"
+          echo "Actor: $GITHUB_ACTOR"
+
+      - name: Verify Git repository
+        run: |
+          git status
+          git log -1 --oneline
