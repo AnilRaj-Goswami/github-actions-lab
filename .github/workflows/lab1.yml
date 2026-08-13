@@ -1,4 +1,4 @@
-name: "GitHub Actions Lab 2"
+name: "GitHub Actions Lab 3"
 
 on:
   push:
@@ -6,33 +6,29 @@ on:
       - main
 
 jobs:
-  explore-runner:
+
+  build:
     runs-on: ubuntu-latest
+
+    outputs:
+      app-version: ${{ steps.version.outputs.app_version }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show workspace
+      - name: Generate application version
+        id: version
         run: |
-          echo "Current directory:"
-          pwd
+          APP_VERSION="1.0.${GITHUB_RUN_NUMBER}"
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Generated version: $APP_VERSION"
 
-          echo ""
-          echo "Repository contents:"
-          ls -la
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
 
-      - name: Show GitHub environment variables
+    steps:
+      - name: Display version from build job
         run: |
-          echo "Repository: $GITHUB_REPOSITORY"
-          echo "Branch/Ref: $GITHUB_REF"
-          echo "Commit SHA: $GITHUB_SHA"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          echo "Workflow: $GITHUB_WORKFLOW"
-          echo "Job: $GITHUB_JOB"
-          echo "Actor: $GITHUB_ACTOR"
-
-      - name: Verify Git repository
-        run: |
-          git status
-          git log -1 --oneline
+          echo "Deploying version: ${{ needs.build.outputs.app-version }}"
