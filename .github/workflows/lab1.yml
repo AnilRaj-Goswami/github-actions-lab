@@ -1,0 +1,21 @@
+name: "GitHub Actions Lab 1"
+
+on:
+  push:
+    branches: 
+      - main
+
+jobs:
+ system-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Greeting
+        run: echo "Hello from GitHub Actions"
+  
+      - name: Print Operating System
+        run: uname -a
+  
+      - name: Print workspace
+        run: |
+            pwd
+            ls -ltra
