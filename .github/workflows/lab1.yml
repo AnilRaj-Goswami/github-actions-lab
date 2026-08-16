@@ -1,9 +1,7 @@
 name: "GitHub Actions Lab 3"
 
 on:
-  push:
-    branches:
-      - main
+  workflow-dispatch:
 
 jobs:
 

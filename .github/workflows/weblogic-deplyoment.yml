@@ -1,0 +1,43 @@
+name: WebLogic Deploy Lab
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "my_tiny_app/**"
+      - ".github/workflows/weblogic-deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, weblogic]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Show runner info
+        run: |
+          hostname
+          whoami
+          pwd
+          java -version
+
+      - name: Build WAR
+        run: |
+          cd my_tiny_app
+          jar -cvf /tmp/hello-app.war .
+
+      - name: Inspect WAR
+        run: |
+          jar -tf /tmp/hello-app.war
+
+      - name: Deploy to WebLogic
+        run: |
+          /opt/oracle/scripts/deploy_hello_app.sh \
+            /tmp/hello-app.war
+
+      - name: Verify application
+        run: |
+          curl -f http://192.168.1.131:7003/hello-app/
