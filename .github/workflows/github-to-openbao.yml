@@ -71,7 +71,7 @@ jobs:
           echo "Updating OpenBao..."
 
           curl --fail --silent --show-error \
-            --request POST \
+            --request PATCH \
             --header "X-Vault-Token: $OPENBAO_TOKEN" \
             --header "X-Vault-Namespace: $OPENBAO_NAMESPACE" \
             --header "Content-Type: application/json" \
