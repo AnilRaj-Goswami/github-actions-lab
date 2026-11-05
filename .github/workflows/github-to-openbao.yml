@@ -1,0 +1,83 @@
+
+name: Sync GitHub Secret to OpenBao
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-secret:
+    name: Store GitHub Secret in OpenBao
+    runs-on: [self-hosted, docker_host]
+
+    steps:
+      - name: Validate configuration
+        shell: bash
+        env:
+          OPENBAO_ADDR: ${{ vars.OPENBAO_ADDR }}
+          OPENBAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
+          MY_SECRET: ${{ secrets.MY_SECRET }}
+        run: |
+          set -euo pipefail
+
+          [[ -n "$OPENBAO_ADDR" ]] || {
+            echo "OPENBAO_ADDR is missing"
+            exit 1
+          }
+
+          [[ -n "$OPENBAO_TOKEN" ]] || {
+            echo "OPENBAO_TOKEN is missing"
+            exit 1
+          }
+
+          [[ -n "$MY_SECRET" ]] || {
+            echo "MY_SECRET is missing"
+            exit 1
+          }
+
+          echo "Configuration validation successful."
+
+      
+      - name: Write secret to OpenBao
+        shell: bash
+        env:
+          OPENBAO_ADDR: ${{ vars.OPENBAO_ADDR }}
+          OPENBAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
+          OPENBAO_NAMESPACE: lab
+          OPENBAO_MOUNT: secret
+          OPENBAO_PATH: github-actions/demo
+          OPENBAO_KEY: MY_SECRET
+          MY_SECRET: ${{ secrets.MY_SECRET }}
+          PAYLOAD_FILE: ${{ runner.temp }}/openbao-payload.json
+        run: |
+          set -euo pipefail
+          umask 077
+
+          trap 'rm -f "$PAYLOAD_FILE"' EXIT
+
+          python3 -c '
+          import json, os
+          payload = {
+              "data": {
+                  os.environ["OPENBAO_KEY"]: os.environ["MY_SECRET"]
+              }
+          }
+          with open(os.environ["PAYLOAD_FILE"], "w") as f:
+              json.dump(payload, f)
+          '
+
+          echo "Updating OpenBao..."
+
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "X-Vault-Token: $OPENBAO_TOKEN" \
+            --header "X-Vault-Namespace: $OPENBAO_NAMESPACE" \
+            --header "Content-Type: application/json" \
+            --data-binary "@$PAYLOAD_FILE" \
+            --output /dev/null \
+            --write-out "HTTP status: %{http_code}\n" \
+            "${OPENBAO_ADDR}/v1/${OPENBAO_MOUNT}/data/${OPENBAO_PATH}"
+
+          echo "Secret successfully stored in OpenBao."
