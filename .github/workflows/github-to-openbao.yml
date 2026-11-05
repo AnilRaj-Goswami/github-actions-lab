@@ -46,7 +46,7 @@ jobs:
           OPENBAO_ADDR: ${{ vars.OPENBAO_ADDR }}
           OPENBAO_TOKEN: ${{ secrets.OPENBAO_TOKEN }}
           OPENBAO_NAMESPACE: lab
-          OPENBAO_MOUNT: secret
+          OPENBAO_MOUNT: kv
           OPENBAO_PATH: github-actions/demo
           OPENBAO_KEY: MY_SECRET
           MY_SECRET: ${{ secrets.MY_SECRET }}
